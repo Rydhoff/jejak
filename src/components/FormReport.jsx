@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { supabase, supbaseUrl1, supbaseUrl2 } from '../supabaseClient'
+import { supabase } from '../supabaseClient'
 import * as mobilenet from '@tensorflow-models/mobilenet'
 import '@tensorflow/tfjs'
 import sha256 from 'crypto-js/sha256'
@@ -31,7 +31,6 @@ export default function FormReport() {
 
   const cacheRef = useRef({})
   const searchTimeout = useRef(null)
-  console.log(supbaseUrl1, supbaseUrl2)
 
   // 🧭 Ambil lokasi user saat pertama kali dibuka
   useEffect(() => {
