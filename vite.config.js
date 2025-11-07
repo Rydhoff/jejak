@@ -13,8 +13,8 @@ export default defineConfig({
       },
       includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'SmartPublic',
-        short_name: 'SmartPublic',
+        name: 'Jejak',
+        short_name: 'Jejak',
         description: 'Aplikasi laporan publik pintar',
         theme_color: '#0078d7',
         background_color: '#ffffff',
