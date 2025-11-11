@@ -16,7 +16,7 @@ export default defineConfig({
         name: 'Jejak',
         short_name: 'Jejak',
         description: 'Aplikasi laporan publik pintar',
-        theme_color: '#0078d7',
+        theme_color: '#0A3B44',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',

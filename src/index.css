@@ -12,7 +12,7 @@
   }
 
   input, textarea, select {
-    @apply w-full shadow-sm bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-[#2a8087] focus:border-[#2a8087] transition;
+    @apply w-full h-13 shadow-sm bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-[#2a8087] focus:border-[#2a8087] transition;
   }
 
   button {

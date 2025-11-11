@@ -331,7 +331,7 @@ export default function FormReport() {
         <div className="flex items-center gap-3">
           <label
             htmlFor="photo-upload"
-            className="flex items-center gap-3 text-white cursor-pointer w-full shadow-sm bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-[#2a8087] focus:border-[#2a8087] transition"
+            className="flex items-center h-13 gap-3 text-white cursor-pointer w-full shadow-sm bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-[#2a8087] focus:border-[#2a8087] transition"
           >
             <img src={mediaIcon} alt="Upload Icon" className="w-5 h-5" />
 
