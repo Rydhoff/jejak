@@ -6,6 +6,7 @@ import PublicReports from './pages/PublicReports'
 import ReportDetail from './components/ReportDetail'
 import { supabase } from './supabaseClient'
 import { useState, useEffect } from 'react'
+import FormReport from './pages/FormReport'
 
 function PrivateRoute({ children }) {
   const [user, setUser] = useState(null)
@@ -48,6 +49,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/form-report" element={<FormReport />} />
         <Route path="/dashboard" element={<PrivateRoute>
           <Dashboard />
           </PrivateRoute>} />
