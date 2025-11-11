@@ -7,9 +7,10 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { Link } from 'react-router-dom'
-import backIcon from '/assets/back.svg';
-import mediaIcon from '/assets/media.svg';
-
+import backIcon from '/assets/back.svg'
+import mediaIcon from '/assets/media.svg'
+import { Bounce, toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 // Atur ikon default Leaflet
 delete L.Icon.Default.prototype._getIconUrl
@@ -31,7 +32,7 @@ export default function FormReport() {
   const [category, setCategory] = useState('Lainnya')
   const [loading, setLoading] = useState(false)
   const [address, setAddress] = useState('')
-  const [location, setLocation] = useState({ lat: -6.2, lng: 107.29 })
+  const [location, setLocation] = useState({ lat: 0, lng: 0 })
   const [searchResults, setSearchResults] = useState([])
   const [searchLoading, setSearchLoading] = useState(false)
 
@@ -167,79 +168,94 @@ export default function FormReport() {
 
   // 📨 Submit laporan
   const handleSubmit = async (e) => {
-    
-    // e.preventDefault()
-    // if (!photo) return alert('Pilih foto terlebih dahulu!')
+    e.preventDefault()
 
-    // setLoading(true)
-    const kategori = category
+    if (!photo) {
+      toast.error('Pilih foto terlebih dahulu!')
+      return
+    }
 
-    alert(
-      
-        name+
-        contact+
-        title+
-        description+
-        kategori+
-        "photoUrl"+
-        location.lat+
-        location.lng+
-        address+
-        'Diterima'+new Date()
-      
-    )
+    setLoading(true)
+    const toastId = toast.loading('Mengirim laporan...')
 
-    // Upload foto ke Supabase
-    // const { data, error: uploadError } = await supabase.storage
-    //   .from('reports')
-    //   .upload(`photos/${photo.name}`, photo)
+    try {
+      // Simulasi delay biar kelihatan loading-nya
+      await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    // if (uploadError) {
-    //   setLoading(false)
-    //   return alert('Upload foto gagal!')
-    // }
+      const kategori = category
 
-    // const photoUrl = data.path
-    // const hash = sha256(title + description + new Date().toISOString()).toString()
+      // Upload foto ke Supabase (contoh real)
+      // const { data, error: uploadError } = await supabase.storage
+      //   .from('reports')
+      //   .upload(`photos/${photo.name}`, photo)
+      // if (uploadError) throw new Error('Upload foto gagal')
 
-    // const { error } = await supabase.from('reports').insert([
-    //   {
-    //     title,
-    //     description,
-    //     category: kategori,
-    //     photo_url: photoUrl,
-    //     location_lat: location.lat,
-    //     location_lng: location.lng,
-    //     address,
-    //     blockchain_hash: hash,
-    //     status: 'Diterima',
-    //     created_at: new Date()
-    //   }
-    // ])
+      // Simulasi hasil upload
+      const photoUrl = 'https://example.com/' + photo.name
 
-    // setLoading(false)
-    // if (error) console.log(error)
-    // else {
-    //   alert(`✅ Laporan terkirim!\nKategori: ${kategori}\nHash: ${hash}`)
-    //   setTitle('')
-    //   setDescription('')
-    //   setPhoto(null)
-    //   setCategory('Lainnya')
-    // }
+      // Simpan ke database
+      // const hash = sha256(title + description + new Date().toISOString()).toString()
+      // const { error } = await supabase.from('reports').insert([
+      //   {
+      //     name,
+      //     contact,
+      //     title,
+      //     description,
+      //     category: kategori,
+      //     photo_url: photoUrl,
+      //     location_lat: location.lat,
+      //     location_lng: location.lng,
+      //     address,
+      //     blockchain_hash: hash,
+      //     status: 'Diterima',
+      //     created_at: new Date()
+      //   }
+      // ])
+      // if (error) throw error
+
+      // ✅ Kalau sukses
+      toast.update(toastId, {
+        render: 'Laporan berhasil dikirim!',
+        type: 'success',
+        isLoading: false,
+        autoClose: 2000,
+        closeOnClick: true,
+      })
+
+      // Reset form
+      setName('')
+      setContact('')
+      setTitle('')
+      setDescription('')
+      setPhoto(null)
+      setCategory('Lainnya')
+    } catch (err) {
+      console.error(err)
+      toast.update(toastId, {
+        render: 'Gagal mengirim laporan!',
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000,
+        closeOnClick: true,
+      })
+    } finally {
+      setLoading(false)
+    }
   }
+
 
   return (
     <div className="max-w-md mx-auto relative">
-      <nav className="flex items-center justify-center h-20 bg-[#0A3B44] rounded-2xl absolute -top-6 w-full shadow-md">
+      <nav className="flex items-center justify-center h-15 bg-[#0A3B44] rounded-bl-2xl rounded-br-2xl sticky top-0 w-full shadow-md">
        <Link to="/">
-          <div className="back-button absolute left-5 top-9 text-white bg-[#0E5D62] rounded-md p-1">
+          <div className="back-button absolute left-5 top-4 text-white bg-[#0E5D62] rounded-md p-1">
             <img src={backIcon} alt="Back" className="w-5 h-5 relative right-0.5" />
           </div>
        </Link>
-        <h1 className="text-lg font-semibold mb-4 text-white text-center relative top-4.5 poppins-semibold">Buat Laporan</h1>
+        <h1 className="text-lg font-semibold mb-4 text-white text-center relative top-2 poppins-semibold">Buat Laporan</h1>
       </nav>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 pt-19 p-5">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-5">
         <label className="input-label text-sm poppins-semibold -mb-0.5">Informasi Pelapor</label>
         <div>
           <input
@@ -293,7 +309,7 @@ export default function FormReport() {
               placeholder="Cari lokasi"
             />
             {searchLoading && (
-              <p className="absolute right-3 top-2 text-gray-400 text-sm">🔍</p>
+              <p className="absolute right-4 top-4 text-gray-400 text-sm">🔍</p>
             )}
             {searchResults.length > 0 && (
               <ul className="absolute bg-white border w-full max-h-48 overflow-y-auto rounded-xl shadow-lg z-1001">
@@ -357,7 +373,7 @@ export default function FormReport() {
         </div>
 
           {loading && (
-            <div className="absolute w-[60%] text-xs text-gray-600 poppins-semibold p-3 rounded-xl text-center right-5 top-50">🤖 Mendeteksi kategori otomatis...</div>
+            <div className="absolute w-[60%] text-xs text-gray-600 poppins-semibold p-3 rounded-xl text-center right-5 top-58">🤖 Mendeteksi kategori otomatis...</div>
           )}
 
         {/* Kategori */}
@@ -380,11 +396,24 @@ export default function FormReport() {
         <button
           type="submit"
           disabled={loading}
-          className="btn-primary mt-3"
+          className="btn-primary mt-3 disabled:bg-gray-400 active:scale-100"
         >
-          {loading ? 'Loading...' : 'Kirim Laporan'}
+          {loading ? 'Loading' : 'Kirim Laporan'}
         </button>
       </form>
+      <ToastContainer
+      position="top-center"
+      autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick={false}
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="light"
+      transition={Bounce}
+      />
     </div>
   )
 
