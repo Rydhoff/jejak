@@ -6,6 +6,7 @@ import sha256 from 'crypto-js/sha256'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
+import { Link } from 'react-router-dom'
 
 // Atur ikon default Leaflet
 delete L.Icon.Default.prototype._getIconUrl
@@ -227,9 +228,11 @@ export default function FormReport() {
   return (
     <div className="max-w-md mx-auto relative">
       <nav className="flex items-center justify-center h-20 bg-[#0A3B44] rounded-2xl absolute -top-6 w-full shadow-md">
-        <div className="back-button absolute left-5 top-9 text-white bg-[#0E5D62] rounded-md p-1">
-          <img src="/src/assets/back.svg" alt="Back" className="w-5 h-5 relative right-0.5" />
-        </div>
+       <Link to="/">
+          <div className="back-button absolute left-5 top-9 text-white bg-[#0E5D62] rounded-md p-1">
+            <img src="../public/assets/back.svg" alt="Back" className="w-5 h-5 relative right-0.5" />
+          </div>
+       </Link>
         <h1 className="text-lg font-semibold mb-4 text-white text-center relative top-4.5 poppins-semibold">Buat Laporan</h1>
       </nav>
 
@@ -327,7 +330,7 @@ export default function FormReport() {
             htmlFor="photo-upload"
             className="flex items-center gap-3 text-white cursor-pointer w-full shadow-sm bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-[#2a8087] focus:border-[#2a8087] transition"
           >
-            <img src="/src/assets/media.svg" alt="Upload Icon" className="w-5 h-5" />
+            <img src="../public/assets/media.svg" alt="Upload Icon" className="w-5 h-5" />
 
             {photo ? (
               // Jika foto sudah dipilih → tampilkan nama file
@@ -376,7 +379,7 @@ export default function FormReport() {
           disabled={loading}
           className="btn-primary mt-3"
         >
-          {loading ? 'Mengirim...' : 'Kirim Laporan'}
+          {loading ? 'Loading...' : 'Kirim Laporan'}
         </button>
       </form>
     </div>
