@@ -24,7 +24,7 @@ export default function ReportDetail() {
       <p>Status: {report.status}</p>
       <p>Lokasi: {report.location_lat}, {report.location_lng}</p>
       <p>Hash Blockchain: {report.blockchain_hash}</p>
-      {report.photo_url && <img src={`https://luywtsbirmuuyhabcdvv.supabase.co/storage/v1/object/public/reports/${report.photo_url}`} alt="report" className="mt-3 w-full rounded"/>}
+      {report.photo_url && <img src={`https://xepaobgjnetmybdlahdm.supabase.co/storage/v1/object/public/reports/${report.photo_url}`} alt="report" className="mt-3 w-full rounded"/>}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../supabaseClient'
+import { supabase, supaPublish, supaUrl } from '../supabaseClient'
 import ReportCard from '../components/ReportCard'
 
 export default function PublicReports() {
@@ -8,6 +8,7 @@ export default function PublicReports() {
   useEffect(() => {
     const fetchReports = async () => {
       const { data } = await supabase.from('reports').select('*').order('created_at', { ascending: false })
+      console.log(supaUrl, supaPublish)
       setReports(data)
     }
     fetchReports()

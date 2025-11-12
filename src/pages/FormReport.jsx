@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabaseClient'
 import * as mobilenet from '@tensorflow-models/mobilenet'
 import '@tensorflow/tfjs'
-import sha256 from 'crypto-js/sha256'
+import { v4 as uuidv4 } from 'uuid'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
@@ -185,33 +185,33 @@ export default function FormReport() {
       const kategori = category
 
       // Upload foto ke Supabase (contoh real)
-      // const { data, error: uploadError } = await supabase.storage
-      //   .from('reports')
-      //   .upload(`photos/${photo.name}`, photo)
-      // if (uploadError) throw new Error('Upload foto gagal')
+      const uniqueName = `${uuidv4()}-${photo.name}`
 
-      // Simulasi hasil upload
-      const photoUrl = 'https://example.com/' + photo.name
+      const { data, error: uploadError } = await supabase.storage
+        .from('reports')
+        .upload(`photos/${uniqueName}`, photo)
+
+      if (uploadError) throw new Error('Upload foto gagal: ' + uploadError)
+
+      const photoUrl = data.path // simpan ini ke database
 
       // Simpan ke database
-      // const hash = sha256(title + description + new Date().toISOString()).toString()
-      // const { error } = await supabase.from('reports').insert([
-      //   {
-      //     name,
-      //     contact,
-      //     title,
-      //     description,
-      //     category: kategori,
-      //     photo_url: photoUrl,
-      //     location_lat: location.lat,
-      //     location_lng: location.lng,
-      //     address,
-      //     blockchain_hash: hash,
-      //     status: 'Diterima',
-      //     created_at: new Date()
-      //   }
-      // ])
-      // if (error) throw error
+      const { error } = await supabase.from('reports').insert([
+        {
+          name,
+          contact,
+          title,
+          description,
+          category: kategori,
+          photo_url: photoUrl,
+          location_lat: location.lat,
+          location_lng: location.lng,
+          address,
+          status: 'Diterima',
+          created_at: new Date()
+        }
+      ])
+      if (error) throw error
 
       // ✅ Kalau sukses
       toast.update(toastId, {
@@ -373,7 +373,9 @@ export default function FormReport() {
         </div>
 
           {loading && (
-            <div className="absolute w-[60%] text-xs text-gray-600 poppins-semibold p-3 rounded-xl text-center right-5 top-58">🤖 Mendeteksi kategori otomatis...</div>
+            <div className="absolute w-[60%] text-xs text-gray-600 poppins-semibold p-3 rounded-xl text-center right-5 top-58 animate-[blink_2s_ease-in-out_infinite]">
+              🤖 Mendeteksi kategori
+            </div>
           )}
 
         {/* Kategori */}
