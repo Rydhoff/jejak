@@ -50,12 +50,12 @@ export default function Home() {
           </div>
 
           {/* Opsi sortir data laporan */}
-          <div className="flex gap-3 mt-7">
+          <div className="flex justify-between w-full mt-7">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActive(tab)}
-                className={`px-5 py-2 rounded-full cursor-pointer border text-sm font-semibold transition-all duration-200 
+                className={`px-4 py-1 rounded-full cursor-pointer border text-sm font-semibold transition-all duration-200 
                   ${
                     active === tab
                       ? "bg-[#004d4d] text-white border-[#004d4d] cursor-pointer"
