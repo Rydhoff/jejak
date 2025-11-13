@@ -9,9 +9,30 @@ export default defineConfig({
     registerType: 'autoUpdate',
       workbox: {
         // Tambahkan baris ini 👇
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024 // 5MB
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+        runtimeCaching: [{
+            urlPattern: ({ request }) => request.destination === 'image',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 hari
+              },
+            },
+          },
+        ],
+
       },
-      includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'],
+      includeAssets:  [
+        'favicon.svg',
+        'robots.txt',
+        'apple-touch-icon.png',
+        '**/*.png',
+        '**/*.svg',
+        '**/*.jpg',
+        '**/*.jpeg',
+      ],
       manifest: {
         name: 'Jejak',
         short_name: 'Jejak',
