@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useNavigate } from 'react-router-dom'
+import BottomNav from '../components/BottomNav'
+import headerLoginIcon from '/assets/header-login.svg'
+import logoJejak from '/logo-jejak.png'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
@@ -19,8 +22,15 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-5 bg-white rounded shadow">
-      <h1 className="text-xl font-bold mb-5">Admin Login</h1>
+  <div className="max-w-md mx-auto relative">
+      <header className="relative" >
+        <img src={headerLoginIcon} alt="Header Login" className="drop-shadow-md" />
+        <img src={logoJejak} alt="Logo Jejak" className="h-24 absolute top-16 left-1/2 -translate-x-1/2" />
+      </header>
+
+      <div className="bg-white w-[80%] rounded-2xl shadow-lg overflow-hidden p-5 absolute left-1/2 -translate-x-1/2 top-1/2 translate-y-1/2">      
+      <h1 className="poppins-semibold text-xl text-center mt-4" >Login Admin</h1>
+      <p className="text-xs text-center mb-5">Masuk untuk mengelola laporan</p>
       <form onSubmit={handleLogin} className="flex flex-col gap-3">
         <input
           type="email"
@@ -38,10 +48,18 @@ export default function AdminLogin() {
           className="border p-2 rounded"
           required
         />
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded">
-          {loading ? 'Loading...' : 'Login'}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn-primary mt-3 mb-5 disabled:bg-gray-400 active:scale-100"
+        >
+          {loading ? 'Loading' : 'Login'}
         </button>
       </form>
+      </div>
+      
+           <BottomNav />
     </div>
   )
 }
