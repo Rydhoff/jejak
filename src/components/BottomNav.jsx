@@ -28,7 +28,7 @@ export default function BottomNav() {
         />
 
         {/* Tombol navigasi kiri-kanan */}
-        <div className="absolute bottom-2.5 w-full flex justify-around px-8 text-xs text-gray-400">
+        <div className="absolute bottom-3 w-full flex justify-around px-8 text-xs text-gray-400">
           {/* Tombol Home */}
           <Link to="/" className="flex flex-col items-center">
             <img
