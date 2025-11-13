@@ -45,6 +45,21 @@ function PrivateRoute({ children }) {
 
 
 function App() {
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const handleLoad = () => setLoading(false)
+    window.addEventListener('load', handleLoad)
+    return () => window.removeEventListener('load', handleLoad)
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-white">
+        <div className="animate-spin w-10 h-10 border-4 border-[#004d4d] border-t-transparent rounded-full"></div>
+      </div>
+    )
+  }
   return (
     <Router>
       <Routes>
