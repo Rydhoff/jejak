@@ -163,3 +163,24 @@
 }
 
 }
+
+/* 🔒 Nonaktifkan pemilihan teks di seluruh aplikasi */
+body {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+/* ✅ Tapi izinkan di input, textarea, dan elemen dengan kelas "selectable" */
+input,
+textarea,
+.selectable {
+  user-select: text;
+  -webkit-user-select: text;
+  -ms-user-select: text;
+}
+
+/* 🔒 Nonaktifkan menu klik kanan */
+body {
+  -webkit-touch-callout: none; /* iOS Safari */
+}

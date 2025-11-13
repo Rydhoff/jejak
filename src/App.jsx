@@ -48,18 +48,36 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const handleLoad = () => setLoading(false)
-    window.addEventListener('load', handleLoad)
-    return () => window.removeEventListener('load', handleLoad)
+    // ⏱ Safety fallback: walaupun window.load gagal, tetap hentikan loading setelah 2 detik
+    const timeout = setTimeout(() => setLoading(false), 2000)
+
+    // ✅ Kalau semua resource sudah selesai load, hentikan lebih cepat
+    const handleLoad = () => {
+      clearTimeout(timeout)
+      setLoading(false)
+    }
+
+    if (document.readyState === 'complete') {
+      // Kalau dokumen sudah siap sebelum listener dibuat
+      handleLoad()
+    } else {
+      window.addEventListener('load', handleLoad)
+    }
+
+    return () => {
+      window.removeEventListener('load', handleLoad)
+      clearTimeout(timeout)
+    }
   }, [])
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-white">
-        <div className="animate-spin w-10 h-10 border-4 border-[#004d4d] border-t-transparent rounded-full"></div>
+        <img src="/logo-jejak.png" alt="Loading..." className="animate-pulse w-24 opacity-90" />
       </div>
     )
   }
+
   return (
     <Router>
       <Routes>
