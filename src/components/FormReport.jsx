@@ -254,6 +254,7 @@ export default function FormReport() {
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Alamat lokasi (bisa diketik untuk mencari)"
             className="border p-2 w-full rounded relative z-1001 bg-white"
+            required
           />
           {searchLoading && (
             <p className="absolute right-3 top-2 text-gray-400 text-sm">🔍...</p>

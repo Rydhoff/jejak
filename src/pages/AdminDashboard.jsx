@@ -1,14 +1,14 @@
-import headerHomeIcon from '/assets/header-home.svg'
+import { useEffect, useState, useMemo } from 'react'
+import { supabase } from '../supabaseClient'
+import headerAdminIcon from '/assets/header-admin.svg'
+import logoutIcon from '/assets/logout.svg'
 import searchIcon from '/assets/search.svg'
 import calendarIcon from '/assets/calendar.svg'
 import locationIcon from '/assets/location.svg'
-import logoJejak from '/logo-jejak.png'
-import { useState, useEffect, useMemo } from 'react'
-import { supabase } from '../supabaseClient'
 import BottomNav from '../components/BottomNav'
 import { Link } from 'react-router-dom'
 
-export default function Home() {
+export default function Dashboard() {
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [active, setActive] = useState("Semua")
@@ -77,12 +77,23 @@ export default function Home() {
     })
   }, [reports, debouncedSearch, active])
 
+  const updateStatus = async (id, status) => {
+    await supabase.from('reports').update({ status }).eq('id', id)
+    fetchReports()
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/admin'
+  }
+
+
   return (
     <div className="max-w-md mx-auto relative pb-32"> {/* pb buat space bottom nav */}
       <header className="relative" >
-        <img src={headerHomeIcon} alt="Header Home" className="drop-shadow-md" />
-        <img src={logoJejak} alt="Logo Jejak" className="h-22 absolute top-8 left-10" />
-        <p className="text-sm poppins-semibold absolute top-26 left-8" >Tinggalkan Jejak, Wujudkan Perubahan</p>
+        <img src={headerAdminIcon} alt="Header Admin" className="drop-shadow-md" />
+        <h1 className="text-2xl poppins-semibold py-2 px-5">Dashboard Admin</h1>
+        <div className="bg-[#0A3B44] drop-shadow-md w-fit rounded-lg p-2 absolute right-10 top-12 cursor-pointer" onClick={handleLogout} ><img src={logoutIcon} alt="Logout" className="h-5" /></div>
       </header>
 
       <div className="flex flex-col py-2 px-5">

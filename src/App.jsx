@@ -1,12 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
-import Dashboard from './pages/Dashboard'
+import AdminDashboard from './pages/AdminDashboard'
 import AdminLogin from './pages/AdminLogin'
-import PublicReports from './pages/PublicReports'
-import ReportDetail from './components/ReportDetail'
+import ReportDetail from './pages/ReportDetail'
 import { supabase } from './supabaseClient'
 import { useState, useEffect } from 'react'
 import FormReport from './pages/FormReport'
+import AdminReportDetail from './pages/AdminReportDetail'
 
 function PrivateRoute({ children }) {
   const [user, setUser] = useState(null)
@@ -83,11 +83,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/form-report" element={<FormReport />} />
-        <Route path="/dashboard" element={<PrivateRoute>
-          <Dashboard />
-          </PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
+        <Route path="/dashboard/report/:id" element={<PrivateRoute><AdminReportDetail /></PrivateRoute>} />
         <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/reports" element={<PublicReports />} />
         <Route path="/report/:id" element={<ReportDetail />} />
       </Routes>
     </Router>
