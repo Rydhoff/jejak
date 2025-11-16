@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [user, setUser] = useState("")
 
   // Fetch reports once
   useEffect(() => {
@@ -37,8 +38,13 @@ export default function Dashboard() {
         if (mounted) setLoading(false)
       }
     }
-
     fetchReports()
+
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser()
+      setUser(data?.user ?? null)
+    }
+    fetchUser()
     return () => { mounted = false }
   }, [])
 
@@ -87,12 +93,19 @@ export default function Dashboard() {
     window.location.href = '/admin'
   }
 
+  const formatName = (email) => {
+    if (!email) return "";
+    const namePart = email.split("@")[0]; // ambil sebelum @
+    return namePart.charAt(0).toUpperCase() + namePart.slice(1); // huruf pertama kapital
+  }
+
 
   return (
     <div className="max-w-md mx-auto relative pb-32"> {/* pb buat space bottom nav */}
       <header className="relative" >
         <img src={headerAdminIcon} alt="Header Admin" className="drop-shadow-md" />
         <h1 className="text-2xl poppins-semibold py-2 px-5">Dashboard Admin</h1>
+        { user.email ? <h1 className="text-lg font-semibold -mt-2 px-5">Hai, {formatName(user.email)}👋</h1> : "" }
         <div className="bg-[#0A3B44] drop-shadow-md w-fit rounded-lg p-2 absolute right-10 top-12 cursor-pointer" onClick={handleLogout} ><img src={logoutIcon} alt="Logout" className="h-5" /></div>
       </header>
 
@@ -149,8 +162,8 @@ export default function Dashboard() {
           ) : (
             <div className="max-w-md mx-auto mt-5 flex flex-col gap-5">
               {filteredReports.map((r) => (
-                <Link to={`report/${r.id}`} >
-                <div key={r.id} className="bg-white rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg">
+                <Link to={`report/${r.id}`} key={r.id}>
+                <div className="bg-white rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg">
                   {r.photo_url && (
                     <div className="relative">
                       <img

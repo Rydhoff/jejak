@@ -138,8 +138,8 @@ export default function Home() {
           ) : (
             <div className="max-w-md mx-auto mt-5 flex flex-col gap-5">
               {filteredReports.map((r) => (
-                <Link to={`report/${r.id}`} >
-                <div key={r.id} className="bg-white rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg">
+                <Link to={`report/${r.id}`} key={r.id} >
+                <div className="bg-white rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg">
                   {r.photo_url && (
                     <div className="relative">
                       <img
