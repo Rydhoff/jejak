@@ -64,7 +64,7 @@ export default function ReportDetail() {
             
           </div>
           <h1 className="poppins-semibold text-md mt-3">Deskripsi</h1>
-          <p className="text-xs">{report.description}</p>
+          <p className="text-xs whitespace-pre-line">{report.description}</p>
 
           <h1 className="poppins-semibold text-md mt-3">Tanggapan</h1>
           <p className="text-xs">{report.response ? report.response : "-" }</p>
