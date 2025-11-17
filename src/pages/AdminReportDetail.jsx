@@ -5,6 +5,8 @@ import CustomSelect from '../components/CustomSelect'
 import backIcon from '/assets/back.svg'
 import updateIcon from '/assets/update.svg'
 import deleteIcon from '/assets/delete.svg'
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const options = ["Diterima", "Proses", "Selesai"];
 
@@ -16,6 +18,8 @@ export default function AdminReportDetail() {
   const [response, setResponse] = useState(report?.response || "")
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
 
   const navigate = useNavigate();
 
@@ -34,15 +38,16 @@ export default function AdminReportDetail() {
     fetchUser()
   }, [id])
 
-  if (!report) return <p>Loading...</p>
+  if (!report) return <div className="flex items-center justify-center min-h-[60vh] text-gray-500">Memuat laporan...</div>
 
   const handleUpdate = async () => {
     if (!status) {
-      alert("Status tidak boleh kosong");
+      toast.error("Status tidak boleh kosong!");
       return;
     }
 
     setLoading(true);
+    const toastId = toast.loading("Memperbarui laporan...");
 
     try {
       const { error, data } = await supabase
@@ -53,22 +58,31 @@ export default function AdminReportDetail() {
         })
         .eq("id", report.id);
 
-        console.log(data)
-
       if (error) throw error;
 
-      // Update state lokal agar UI langsung berubah
       setReport({ ...report, status, response });
-
-      alert("Laporan berhasil diupdate!");
       setShowModal(false);
+
+      toast.update(toastId, {
+        render: "Laporan berhasil diperbarui!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+      });
+
     } catch (err) {
       console.error(err);
-      alert("Gagal update laporan");
+      toast.update(toastId, {
+        render: "Gagal memperbarui laporan",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
     } finally {
       setLoading(false);
     }
   };
+
 
   const formatName = (email) => {
     if (!email) return "";
@@ -77,12 +91,22 @@ export default function AdminReportDetail() {
   }
 
   const handleDelete = async () => {
-    const confirm = window.confirm("Apakah kamu yakin ingin menghapus laporan ini?");
-    if (!confirm) return;
-
     setLoading(true);
+    const toastId = toast.loading("Menghapus laporan...");
 
     try {
+      // Hapus file foto jika ada
+      if (report.photo_url) {
+        const { error: storageError } = await supabase.storage
+          .from("reports") // nama bucket
+          .remove([report.photo_url]); // path file
+
+        if (storageError) {
+          console.error("Gagal hapus gambar:", storageError);
+        }
+      }
+
+      // Hapus data dari database
       const { error } = await supabase
         .from("reports")
         .delete()
@@ -90,15 +114,30 @@ export default function AdminReportDetail() {
 
       if (error) throw error;
 
-      alert("Laporan berhasil dihapus!");
-      navigate("/dashboard"); // Kembali ke dashboard setelah hapus
+      toast.update(toastId, {
+        render: "Laporan berhasil dihapus!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+      });
+
+      setTimeout(() => navigate("/dashboard"), 1200);
+
     } catch (err) {
       console.error(err);
-      alert("Gagal menghapus laporan");
+      toast.update(toastId, {
+        render: "Gagal menghapus laporan!",
+        type: "error",
+        isLoading: false,
+        autoClose: 2000,
+      });
     } finally {
       setLoading(false);
     }
   };
+
+
+
 
   return (
     <div className="max-w-md mx-auto relative">
@@ -112,7 +151,7 @@ export default function AdminReportDetail() {
       </nav>
       {report.photo_url && <img src={`https://xepaobgjnetmybdlahdm.supabase.co/storage/v1/object/public/reports/${report.photo_url}`} alt="report" className="w-full -mt-4 h-74 object-cover"/>}
 
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden p-5 m-4 relative -top-12">
+      <div className="bg-white rounded-2xl shadow-md overflow-hidden p-5 m-4 relative -top-12 mb-10">
           <h1 className="poppins-semibold text-lg">{report.title}</h1>
           <div className="text-xs mt-1">
             <div className="mt-1">
@@ -155,13 +194,40 @@ export default function AdminReportDetail() {
 
           <h1 className="poppins-semibold text-md mt-3">Tanggapan</h1>
           <p className="text-xs">{report.response ? report.response : "-" }</p>
+
+          {/* MAP LOKASI */}
+          <h1 className="poppins-semibold text-md mt-3">Lokasi</h1>
+          <div className="mt-3 w-full h-52 rounded-xl overflow-hidden">
+            <iframe
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              src={`https://www.google.com/maps?q=${report.location_lat},${report.location_lng}&z=18&output=embed`}
+            ></iframe>
+          </div>
+
+          {/* Tombol buka di Google Maps */}
+          <a
+            href={`https://www.google.com/maps?q=${report.location_lat},${report.location_lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 w-full block bg-[#0A3B44] text-white text-center py-2 rounded-xl active:scale-95 transition"
+          >
+            Buka di Google Maps
+          </a>
+
         </div>
+
         
-       <nav className="fixed bottom-0 left-0 w-full bg-transparent p-4">
+
+        
+       <nav className="fixed bottom-0 left-0 w-full bg-transparent p-4 z-1001">
           <div className="flex justify-between max-w-md mx-auto gap-4">
             {/* Tombol Hapus */}
             <button
-              onClick={handleDelete}
+              onClick={() => setShowDeleteModal(true)}
               className="flex-1 bg-red-500 rounded-full px-6 py-3 drop-shadow-[0_0_10px_rgba(0,0,0,.2)] active:scale-95 transition text-white font-semibold flex items-center justify-center gap-2"
             >
               <img src={deleteIcon} alt="Delete" className="w-5 h-5" />
@@ -179,10 +245,43 @@ export default function AdminReportDetail() {
           </div>
         </nav>
 
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-1002">
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-11/12 max-w-md">
 
+              <h1 className="text-lg font-semibold mb-2 text-center poppins-semibold">
+                Hapus Laporan?
+              </h1>
+
+              <p className="text-sm text-center text-gray-600 mb-6">
+                Laporan <span className="font-semibold">{report.title}</span> akan dihapus permanen.
+              </p>
+
+              {/* BUTTON GROUP */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 bg-gray-200 text-gray-700 px-4 py-3 rounded-xl active:scale-95 transition font-semibold"
+                >
+                  Batal
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    handleDelete();
+                  }}
+                  className="flex-1 bg-red-500 text-white px-4 py-3 rounded-xl active:scale-95 transition font-semibold"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showModal && (
-          <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+          <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-1002">
             <div className="bg-white rounded-2xl shadow-lg p-5 w-11/12 max-w-md">
 
               <h1 className="poppins-semibold text-lg mb-2">Update Laporan</h1>
@@ -231,6 +330,7 @@ export default function AdminReportDetail() {
             </div>
           </div>
         )}
+        <ToastContainer position="top-center" />
     </div>
   )
 }

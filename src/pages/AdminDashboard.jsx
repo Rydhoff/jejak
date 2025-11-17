@@ -48,6 +48,20 @@ export default function Dashboard() {
     return () => { mounted = false }
   }, [])
 
+  
+
+  const totals = useMemo(() => {
+    if (!reports) return {};
+
+    return {
+      total: reports.length,
+      baru: reports.filter(r => (r.status ?? "").toLowerCase() === "diterima").length,
+      proses: reports.filter(r => (r.status ?? "").toLowerCase() === "proses").length,
+      selesai: reports.filter(r => (r.status ?? "").toLowerCase() === "selesai").length,
+    };
+  }, [reports]);
+  
+
   // Debounce search (300ms)
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
@@ -110,8 +124,64 @@ export default function Dashboard() {
       </header>
 
       <div className="flex flex-col py-2 px-5">
+        {/* Tabs Card Style */}
+        <div className="grid grid-cols-2 gap-3 mt-4">
+
+          {/* Total */}
+          <button
+            onClick={() => setActive("Semua")}
+            className={`p-4 rounded-2xl text-left shadow-md transition-all ${
+              active === "Semua"
+                ? "bg-[#004D4D] text-white"
+                : "bg-white text-[#004D4D]"
+            }`}
+          >
+            <p className="text-md font-semibold">Total laporan</p>
+            <p className="text-xl poppins-regular mt-1">{totals.total}</p>
+          </button>
+
+          {/* Baru / Diterima */}
+          <button
+            onClick={() => setActive("Baru")}
+            className={`p-4 rounded-2xl text-left shadow-md transition-all ${
+              active === "Baru"
+                ? "bg-[#004D4D] text-white"
+                : "bg-white text-[#004D4D]"
+            }`}
+          >
+            <p className="text-md font-semibold">Baru</p>
+            <p className="text-xl poppins-regular mt-1">{totals.baru}</p>
+          </button>
+
+          {/* Proses */}
+          <button
+            onClick={() => setActive("Proses")}
+            className={`p-4 rounded-2xl text-left shadow-md transition-all ${
+              active === "Proses"
+                ? "bg-[#004D4D] text-white"
+                : "bg-white text-[#004D4D]"
+            }`}
+          >
+            <p className="text-md font-semibold">Proses</p>
+            <p className="text-xl poppins-regular mt-1">{totals.proses}</p>
+          </button>
+
+          {/* Selesai */}
+          <button
+            onClick={() => setActive("Selesai")}
+            className={`p-4 rounded-2xl text-left shadow-md transition-all cursor-pointer ${
+              active === "Selesai"
+                ? "bg-[#004D4D] text-white"
+                : "bg-white text-[#004D4D]"
+            }`}
+          >
+            <p className="text-md font-semibold">Selesai</p>
+            <p className="text-xl poppins-regular mt-1">{totals.selesai}</p>
+          </button>
+        </div>
+
         {/* Search */}
-        <div className="mt-12 relative w-full max-w-sm">
+        <div className="mt-6 relative w-full max-w-sm">
           <img
             src={searchIcon}
             alt="Search icon"
@@ -124,24 +194,6 @@ export default function Dashboard() {
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-12 pr-4 py-2 border h-11 border-gray-300 rounded-4xl focus:ring-2 focus:ring-[#006d6d] focus:outline-none"
           />
-        </div>
-
-        {/* Tabs */}
-        <div className="flex justify-between w-full mt-7">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActive(tab)}
-              className={`px-4 py-1 rounded-full cursor-pointer border text-sm font-semibold transition-all duration-200 
-                ${
-                  active === tab
-                    ? "bg-[#004d4d] text-white border-[#004d4d]"
-                    : "bg-white text-[#004d4d] border-[#004d4d] hover:bg-[#004d4d]/10"
-                }`}
-            >
-              {tab}
-            </button>
-          ))}
         </div>
 
         {/* List Laporan */}

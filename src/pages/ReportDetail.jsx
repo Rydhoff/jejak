@@ -15,7 +15,8 @@ export default function ReportDetail() {
     fetchReport()
   }, [id])
 
-  if (!report) return <p>Loading...</p>
+  if (!report) return <div className="flex items-center justify-center min-h-[60vh] text-gray-500">Memuat laporan...</div>
+  
 
   return (
     <div className="max-w-md mx-auto relative">
@@ -68,6 +69,29 @@ export default function ReportDetail() {
 
           <h1 className="poppins-semibold text-md mt-3">Tanggapan</h1>
           <p className="text-xs">{report.response ? report.response : "-" }</p>
+
+          {/* MAP LOKASI */}
+          <h1 className="poppins-semibold text-md mt-3">Lokasi</h1>
+          <div className="mt-3 w-full h-52 rounded-xl overflow-hidden">
+            <iframe
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              src={`https://www.google.com/maps?q=${report.location_lat},${report.location_lng}&z=18&output=embed`}
+            ></iframe>
+          </div>
+
+          {/* Tombol buka di Google Maps */}
+          <a
+            href={`https://www.google.com/maps?q=${report.location_lat},${report.location_lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 w-full block bg-[#0A3B44] text-white text-center py-2 rounded-xl active:scale-95 transition"
+          >
+            Buka di Google Maps
+          </a>
         </div>
         
     </div>

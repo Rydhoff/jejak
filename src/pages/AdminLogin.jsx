@@ -16,7 +16,6 @@ export default function AdminLogin() {
     setLoading(true)
     const { error, data } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
-    console.log(data)
     if (error) alert('Login gagal: ' + error.message)
     else navigate('/dashboard')
   }
@@ -25,7 +24,7 @@ export default function AdminLogin() {
   <div className="max-w-md mx-auto relative">
       <header className="relative" >
         <img src={headerLoginIcon} alt="Header Login" className="drop-shadow-md" />
-        <img src={logoJejak} alt="Logo Jejak" className="h-24 absolute top-16 left-1/2 -translate-x-1/2" />
+        <img src={logoJejak} alt="Logo Jejak" className="h-28 absolute top-18 left-1/2 -translate-x-1/2" />
       </header>
 
       <div className="bg-white w-[80%] rounded-2xl shadow-lg overflow-hidden p-5 absolute left-1/2 -translate-x-1/2 top-1/2 translate-y-1/2">      
@@ -37,7 +36,7 @@ export default function AdminLogin() {
           placeholder="Email"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          className="border p-2 rounded"
+          className="border p-2 px-5 rounded"
           required
         />
         <input
@@ -45,7 +44,7 @@ export default function AdminLogin() {
           placeholder="Password"
           value={password}
           onChange={e => setPassword(e.target.value)}
-          className="border p-2 rounded"
+          className="border p-2 px-5 rounded"
           required
         />
 

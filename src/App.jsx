@@ -26,7 +26,7 @@ function PrivateRoute({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth event:', _event)
+      // console.log('Auth event:', _event)
       setUser(session?.user ?? null)
     })
 
@@ -36,7 +36,7 @@ function PrivateRoute({ children }) {
     }
   }, [])
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <div className="flex items-center justify-center min-h-[60vh] text-gray-500">Loading...</div>
   if (!user) return <Navigate to="/admin" replace />
 
   return children

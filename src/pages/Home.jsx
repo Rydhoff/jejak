@@ -81,8 +81,8 @@ export default function Home() {
     <div className="max-w-md mx-auto relative pb-32"> {/* pb buat space bottom nav */}
       <header className="relative" >
         <img src={headerHomeIcon} alt="Header Home" className="drop-shadow-md" />
-        <img src={logoJejak} alt="Logo Jejak" className="h-22 absolute top-8 left-10" />
-        <p className="text-sm poppins-semibold absolute top-26 left-8" >Tinggalkan Jejak, Wujudkan Perubahan</p>
+        <img src={logoJejak} alt="Logo Jejak" className="h-22 absolute top-7.5 left-10 drop-shadow-sm" />
+        <p className="text-sm poppins-semibold absolute text-[#004d4d] top-29 left-8" >Tinggalkan Jejak, Wujudkan Perubahan</p>
       </header>
 
       <div className="flex flex-col py-2 px-5">
