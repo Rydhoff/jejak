@@ -117,7 +117,7 @@ export default function Home() {
     <div className="max-w-md mx-auto relative pb-32">
       <header className="relative" >
         <img src={headerHomeIcon} alt="Header Home" className="drop-shadow-md" />
-        <img src={logoJejak} alt="Logo Jejak" className="h-22 absolute top-6 left-7 drop-shadow-sm" />
+        <img src={logoJejak} alt="Logo Jejak" className="h-22 absolute top-7 left-11 drop-shadow-sm" />
         <p className="text-sm poppins-semibold absolute text-[#004d4d] top-28 left-9">
           Tinggalkan Jejak, Wujudkan Perubahan
         </p>
