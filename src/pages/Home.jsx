@@ -77,22 +77,6 @@ export default function Home() {
     })
   }, [reports, debouncedSearch, active])
 
-  // 🔔 TEST NOTIF HANDLER
-  const testNotif = async () => {
-    if (Notification.permission !== "granted") {
-      await Notification.requestPermission()
-    }
-    console.log("notif jalan")
-
-    const reg = await navigator.serviceWorker.getRegistration()
-
-    reg?.showNotification("Notifikasi Test Jejak", {
-      body: "Berhasil! 🎉 Push notification bekerja.",
-      icon: "/logo-jejak.png",
-      vibrate: [100, 50, 100],
-    })
-  }
-
   return (
     <div className="max-w-md mx-auto relative pb-32">
       <header className="relative" >
@@ -212,14 +196,6 @@ export default function Home() {
       </div>
 
       <BottomNav />
-
-      {/* 🔔 TEST PUSH BUTTON */}
-      <button
-        onClick={testNotif}
-        className="fixed bottom-28 right-6 bg-[#004d4d] text-white px-4 py-2 rounded-full shadow-lg text-sm hover:bg-[#006d6d] transition"
-      >
-        Test Notif
-      </button>
     </div>
   )
 }
