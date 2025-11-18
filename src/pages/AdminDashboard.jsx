@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { supabase } from '../supabaseClient'
 import headerAdminIcon from '/assets/header-admin.svg'
 import logoutIcon from '/assets/logout.svg'
@@ -10,6 +10,13 @@ import { Link } from 'react-router-dom'
 import CustomSelect from '../components/CustomSelect'
 
 export default function Dashboard() {
+
+  // 🔥 LAZY LOAD STATE
+  const LIMIT = 6
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const loaderRef = useRef(null)
+
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [active, setActive] = useState("Semua")
@@ -19,11 +26,11 @@ export default function Dashboard() {
   const [error, setError] = useState(null)
   const [user, setUser] = useState("")
 
-  // Filter tambahan
+  // Filter kategori & prioritas
   const [filterCategory, setFilterCategory] = useState("Semua")
-  const [filterPriority, setFilterPriority] = useState("Semua") // angka atau "Semua"
+  const [filterPriority, setFilterPriority] = useState("Semua")
 
-  // PRIORITY LABELS (tanpa angka)
+  // Priority labels
   const priorityLabels = {
     5: "Tinggi",
     4: "Sedang-Tinggi",
@@ -32,7 +39,6 @@ export default function Dashboard() {
     1: "Rendah",
   }
 
-  // PRIORITY OPTIONS (label saja)
   const priorityOptions = [
     "Semua",
     ...Object.entries(priorityLabels)
@@ -40,43 +46,73 @@ export default function Dashboard() {
       .map(([_, label]) => label)
   ]
 
-  // Fetch reports & user
-  useEffect(() => {
-    let mounted = true
+  // 🔥 FETCH PAGINATED DATA
+  const fetchReports = async () => {
+    try {
+      const start = page * LIMIT
+      const end = start + LIMIT - 1
 
-    const fetchReports = async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const { data, error } = await supabase
-          .from('reports')
-          .select('*')
-          .order('created_at', { ascending: false })
+      const { data, error } = await supabase
+        .from("reports")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(start, end)
 
-        if (error) throw error
-        if (mounted) setReports(data ?? [])
-      } catch (err) {
-        console.error('Fetch reports error:', err)
-        if (mounted) setError('Gagal memuat laporan')
-      } finally {
-        if (mounted) setLoading(false)
+      if (error) throw error
+
+      if (!data || data.length === 0) {
+        setHasMore(false)
+        return
       }
-    }
 
+      // merge tanpa duplicate
+      setReports(prev => {
+        const ids = new Set(prev.map(r => r.id))
+        const merged = [...prev]
+        data.forEach(item => {
+          if (!ids.has(item.id)) merged.push(item)
+        })
+        return merged
+      })
+    } catch (err) {
+      console.error("Lazy load error:", err)
+      setError("Gagal memuat laporan")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // first load
+  useEffect(() => {
     fetchReports()
+  }, [page])
 
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUser(data?.user ?? null)
-    }
-    fetchUser()
-
-    return () => { mounted = false }
+  // User fetch
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null))
   }, [])
 
-  // Compute totals untuk tab
+  // 🔥 INTERSECTION OBSERVER (infinite scroll)
+  useEffect(() => {
+    if (!hasMore) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setPage((p) => p + 1)
+        }
+      },
+      { threshold: 1 }
+    )
+
+    if (loaderRef.current) observer.observe(loaderRef.current)
+
+    return () => {
+      if (loaderRef.current) observer.unobserve(loaderRef.current)
+    }
+  }, [hasMore])
+
+  // Totals
   const totals = useMemo(() => {
-    if (!reports) return {}
     return {
       total: reports.length,
       baru: reports.filter(r => (r.status ?? "").toLowerCase() === "diterima").length,
@@ -85,65 +121,63 @@ export default function Dashboard() {
     }
   }, [reports])
 
-  // Debounce pencarian
+  // Debounce search
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
     return () => clearTimeout(t)
   }, [search])
 
-  // Kategori dinamis
+  // Dynamic categories
   const categories = useMemo(() => {
     const cats = reports.map(r => r.category).filter(Boolean)
     return ["Semua", ...Array.from(new Set(cats))]
   }, [reports])
 
-  // Filter reports
+  // Full filtering
   const filteredReports = useMemo(() => {
-    if (!reports || reports.length === 0) return []
+    let list = [...reports]
 
     const q = debouncedSearch.toLowerCase()
 
-    return reports.filter((r) => {
+    if (active !== "Semua") {
+      list = list.filter((r) => {
+        const s = (r.status ?? "").toLowerCase()
+        if (active === "Baru") return s === "diterima"
+        return s === active.toLowerCase()
+      })
+    }
 
-      // Tab/status filter
-      if (active !== 'Semua') {
-        const status = (r.status ?? '').toLowerCase()
-        if (active === 'Baru' && status !== 'diterima') return false
-        if (active !== 'Baru' && status !== active.toLowerCase()) return false
-      }
+    if (q) {
+      list = list.filter((r) =>
+        (r.title ?? "").toLowerCase().includes(q) ||
+        (r.description ?? "").toLowerCase().includes(q) ||
+        (r.address ?? "").toLowerCase().includes(q)
+      )
+    }
 
-      // Search filter
-      if (q) {
-        const inTitle = (r.title ?? '').toLowerCase().includes(q)
-        const inDesc = (r.description ?? '').toLowerCase().includes(q)
-        const inAddr = (r.address ?? '').toLowerCase().includes(q)
-        if (!inTitle && !inDesc && !inAddr) return false
-      }
+    if (filterCategory !== "Semua") {
+      list = list.filter((r) => r.category === filterCategory)
+    }
 
-      // Category filter
-      if (filterCategory !== "Semua" && r.category !== filterCategory) return false
+    if (filterPriority !== "Semua") {
+      const numKey = Object.keys(priorityLabels).find(
+        key => priorityLabels[key] === filterPriority
+      )
+      list = list.filter((r) => Number(r.priority) === Number(numKey))
+    }
 
-      // Priority filter (convert label → angka)
-      if (filterPriority !== "Semua") {
-        const numKey = Object.keys(priorityLabels).find(
-          (key) => priorityLabels[key] === filterPriority
-        )
-        if (Number(r.priority) !== Number(numKey)) return false
-      }
-
-      return true
-    })
+    return list
   }, [reports, debouncedSearch, active, filterCategory, filterPriority])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    window.location.href = '/admin'
+    window.location.href = "/admin"
   }
 
   const formatName = (email) => {
     if (!email) return ""
-    const namePart = email.split("@")[0]
-    return namePart.charAt(0).toUpperCase() + namePart.slice(1)
+    const name = email.split("@")[0]
+    return name.charAt(0).toUpperCase() + name.slice(1)
   }
 
   return (
@@ -151,11 +185,13 @@ export default function Dashboard() {
       <header className="relative">
         <img src={headerAdminIcon} alt="Header Admin" className="drop-shadow-md" />
         <h1 className="text-2xl poppins-semibold py-2 px-5">Dashboard Admin</h1>
+
         {user?.email && (
           <h1 className="text-lg font-semibold -mt-2 px-5">
             Hai, {formatName(user.email)}👋
           </h1>
         )}
+
         <div
           className="bg-[#0A3B44] drop-shadow-md w-fit rounded-lg p-2 absolute right-10 top-12 cursor-pointer"
           onClick={handleLogout}
@@ -195,15 +231,13 @@ export default function Dashboard() {
             type="text"
             placeholder="Cari laporan"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-12 pr-4 py-2 border h-11 border-gray-300 rounded-4xl focus:ring-2 focus:ring-[#006d6d] focus:outline-none"
           />
         </div>
 
         {/* FILTERS */}
         <div className="grid grid-cols-2 gap-4 mt-5">
-
-          {/* Filter Kategori */}
           <div className="flex flex-col">
             <label className="text-sm font-semibold text-gray-700">Kategori</label>
             <CustomSelect
@@ -213,7 +247,6 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Filter Prioritas */}
           <div className="flex flex-col">
             <label className="text-sm font-semibold text-gray-700">Prioritas</label>
             <CustomSelect
@@ -222,7 +255,6 @@ export default function Dashboard() {
               options={priorityOptions}
             />
           </div>
-
         </div>
 
         {/* List Laporan */}
@@ -231,13 +263,7 @@ export default function Dashboard() {
             {active === "Semua" ? "Semua Laporan" : "Laporan " + active}
           </h1>
 
-          {loading ? (
-            <div className="py-8 flex justify-center text-gray-500">
-              Memuat laporan...
-            </div>
-          ) : error ? (
-            <div className="py-8 text-red-500">{error}</div>
-          ) : filteredReports.length === 0 ? (
+          {filteredReports.length === 0 ? (
             <div className="py-8 text-center text-gray-500">
               Tidak ada laporan {debouncedSearch ? `untuk "${debouncedSearch}"` : ""}
             </div>
@@ -246,8 +272,6 @@ export default function Dashboard() {
               {filteredReports.map((r) => (
                 <Link to={`report/${r.id}`} key={r.id}>
                   <div className="bg-white rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg">
-
-                    {/* Foto */}
                     {r.photo_url && (
                       <div className="relative">
                         <img
@@ -269,7 +293,6 @@ export default function Dashboard() {
                       </div>
                     )}
 
-                    {/* Text */}
                     <div className="p-4">
                       <h2 className="poppins-semibold text-base truncate w-[70vw]">
                         {r.title}
@@ -283,7 +306,6 @@ export default function Dashboard() {
                           <img src={locationIcon} alt="Lokasi" className="h-4.5 w-4.5" />
                           <span className="truncate w-[70vw]">{r.address}</span>
                         </div>
-
                         <div className="flex items-center mt-2 gap-1">
                           <img src={calendarIcon} alt="Kalender" className="h-4.5 w-4.5" />
                           <span>
@@ -298,10 +320,16 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </Link>
               ))}
+            </div>
+          )}
+
+          {/* 🔥 Loader sentinel untuk infinite scroll */}
+          {hasMore && (
+            <div ref={loaderRef} className="py-10 text-center text-gray-400">
+              Memuat lebih banyak...
             </div>
           )}
         </div>
