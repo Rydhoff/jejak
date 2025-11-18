@@ -3,28 +3,19 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), VitePWA({
-    registerType: 'autoUpdate',
-      workbox: {
-        // Tambahkan baris ini 👇
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
-        runtimeCaching: [{
-            urlPattern: ({ request }) => request.destination === 'image',
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 hari
-              },
-            },
-          },
-        ],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: 'autoUpdate',
 
-      },
-      includeAssets:  [
+      // 🟩 WAJIB untuk push notification
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
+
+      includeAssets: [
         'favicon.svg',
         'robots.txt',
         'apple-touch-icon.png',
@@ -33,6 +24,7 @@ export default defineConfig({
         '**/*.jpg',
         '**/*.jpeg',
       ],
+
       manifest: {
         name: 'Jejak',
         short_name: 'Jejak',
@@ -56,9 +48,27 @@ export default defineConfig({
             src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'maskable'
           }
         ]
+      },
+
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.destination === 'image',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+        ],
       }
-  })],
+    })
+  ],
 })

@@ -66,7 +66,7 @@ export default function Home() {
         if (active !== 'Baru' && status !== active.toLowerCase()) return false
       }
 
-      // 2) Filter by search query (title | description | address)
+      // 2) Filter by search query
       if (!q) return true
 
       const inTitle = (r.title ?? '').toLowerCase().includes(q)
@@ -77,15 +77,34 @@ export default function Home() {
     })
   }, [reports, debouncedSearch, active])
 
+  // 🔔 TEST NOTIF HANDLER
+  const testNotif = async () => {
+    if (Notification.permission !== "granted") {
+      await Notification.requestPermission()
+    }
+    console.log("notif jalan")
+
+    const reg = await navigator.serviceWorker.getRegistration()
+
+    reg?.showNotification("Notifikasi Test Jejak", {
+      body: "Berhasil! 🎉 Push notification bekerja.",
+      icon: "/logo-jejak.png",
+      vibrate: [100, 50, 100],
+    })
+  }
+
   return (
-    <div className="max-w-md mx-auto relative pb-32"> {/* pb buat space bottom nav */}
+    <div className="max-w-md mx-auto relative pb-32">
       <header className="relative" >
         <img src={headerHomeIcon} alt="Header Home" className="drop-shadow-md" />
-        <img src={logoJejak} alt="Logo Jejak" className="h-22 absolute top-7.5 left-10 drop-shadow-sm" />
-        <p className="text-sm poppins-semibold absolute text-[#004d4d] top-29 left-8" >Tinggalkan Jejak, Wujudkan Perubahan</p>
+        <img src={logoJejak} alt="Logo Jejak" className="h-22 absolute top-6 left-7 drop-shadow-sm" />
+        <p className="text-sm poppins-semibold absolute text-[#004d4d] top-28 left-9">
+          Tinggalkan Jejak, Wujudkan Perubahan
+        </p>
       </header>
 
       <div className="flex flex-col py-2 px-5">
+        
         {/* Search */}
         <div className="mt-12 relative w-full max-w-sm">
           <img
@@ -126,7 +145,7 @@ export default function Home() {
             {active === "Semua" ? "Semua Laporan" : "Laporan " + active}
           </h1>
 
-          {/* Loading / Error / Empty states */}
+          {/* Loading / Error / Empty */}
           {loading ? (
             <div className="py-8 flex justify-center text-gray-500">Memuat laporan...</div>
           ) : error ? (
@@ -138,53 +157,53 @@ export default function Home() {
           ) : (
             <div className="max-w-md mx-auto mt-5 flex flex-col gap-5">
               {filteredReports.map((r) => (
-                <Link to={`report/${r.id}`} key={r.id} >
-                <div className="bg-white rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg">
-                  {r.photo_url && (
-                    <div className="relative">
-                      <img
-                        src={`https://xepaobgjnetmybdlahdm.supabase.co/storage/v1/object/public/reports/${r.photo_url}`}
-                        alt="report"
-                        className="w-full h-36 object-cover"
-                      />
-                      <span
-                        className={`absolute top-2 scale-95 right-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${
-                          r.status === "Selesai"
-                            ? "bg-green-400/50 border-green-400 text-green-800"
-                            : r.status === "Proses"
-                            ? "bg-yellow-400/50 border-yellow-400 text-yellow-800"
-                            : "bg-gray-400/50 border-gray-400 text-gray-700"
-                        }`}
-                      >
-                        {r.status}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="p-4">
-                    <h2 className="poppins-semibold text-base truncate w-[70vw]">{r.title}</h2>
-                    <p className="text-gray-600 text-sm truncate w-[70vw]">{r.description}</p>
-
-                    <div className="text-xs text-gray-400 mt-2 gap-4">
-                      <div className="flex items-center gap-1">
-                        <img src={locationIcon} alt="Lokasi" className="h-4.5 w-4.5" />
-                        <span className="truncate w-[70vw]">{r.address}</span>
-                      </div>
-                      <div className="flex items-center mt-2 gap-1">
-                        <img src={calendarIcon} alt="Kalender" className="h-4.5 w-4.5" />
-                        <span>
-                          {new Date(r.created_at).toLocaleString("id-ID", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                <Link to={`report/${r.id}`} key={r.id}>
+                  <div className="bg-white rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg">
+                    {r.photo_url && (
+                      <div className="relative">
+                        <img
+                          src={`https://xepaobgjnetmybdlahdm.supabase.co/storage/v1/object/public/reports/${r.photo_url}`}
+                          alt="report"
+                          className="w-full h-36 object-cover"
+                        />
+                        <span
+                          className={`absolute top-2 scale-95 right-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${
+                            r.status === "Selesai"
+                              ? "bg-green-400/50 border-green-400 text-green-800"
+                              : r.status === "Proses"
+                              ? "bg-yellow-400/50 border-yellow-400 text-yellow-800"
+                              : "bg-gray-400/50 border-gray-400 text-gray-700"
+                          }`}
+                        >
+                          {r.status}
                         </span>
+                      </div>
+                    )}
+
+                    <div className="p-4">
+                      <h2 className="poppins-semibold text-base truncate w-[70vw]">{r.title}</h2>
+                      <p className="text-gray-600 text-sm truncate w-[70vw]">{r.description}</p>
+
+                      <div className="text-xs text-gray-400 mt-2 gap-4">
+                        <div className="flex items-center gap-1">
+                          <img src={locationIcon} alt="Lokasi" className="h-4.5 w-4.5" />
+                          <span className="truncate w-[70vw]">{r.address}</span>
+                        </div>
+                        <div className="flex items-center mt-2 gap-1">
+                          <img src={calendarIcon} alt="Kalender" className="h-4.5 w-4.5" />
+                          <span>
+                            {new Date(r.created_at).toLocaleString("id-ID", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
                 </Link>
               ))}
             </div>
@@ -193,6 +212,14 @@ export default function Home() {
       </div>
 
       <BottomNav />
+
+      {/* 🔔 TEST PUSH BUTTON */}
+      <button
+        onClick={testNotif}
+        className="fixed bottom-28 right-6 bg-[#004d4d] text-white px-4 py-2 rounded-full shadow-lg text-sm hover:bg-[#006d6d] transition"
+      >
+        Test Notif
+      </button>
     </div>
   )
 }

@@ -127,19 +127,32 @@ export default function FormReport() {
     const tId = toast.loading('Mengirim laporan...');
 
     try {
-      const photoPath = await uploadPhoto(photo);
 
-      // --- Panggil AI untuk generate semua field ---
+      // --- PANGGIL AI DULU ---
       const aiResult = await callAI({ text: description });
-
       const { category, title, moderation, priority } = aiResult;
 
-      // --- Insert record ke Supabase ---
+      // --- VALIDASI MODERATION ---
+      if (moderation === true) {
+        toast.update(tId, {
+          render: 'Laporan mengandung kata tidak pantas atau sensitif. Mohon perbaiki deskripsi.',
+          type: 'error',
+          isLoading: false,
+          autoClose: 3000
+        });
+        setLoading(false);
+        return; // STOP submit, JANGAN upload foto, JANGAN insert DB
+      }
+
+      // --- UPLOAD FOTO HANYA JIKA MODERATION AMAN ---
+      const photoPath = await uploadPhoto(photo);
+
+      // --- INSERT DATABASE ---
       const { error: insertError } = await supabase.from('reports').insert([
         {
           name,
           contact,
-          description: aiResult.description, // gunakan AI description
+          description: aiResult.description,
           title,
           category,
           moderation,
@@ -166,6 +179,7 @@ export default function FormReport() {
       setContact('');
       setDescription('');
       setPhoto(null);
+
     } catch (err) {
       console.error(err);
       toast.update(tId, {
@@ -178,6 +192,7 @@ export default function FormReport() {
       setLoading(false);
     }
   };
+
 
   function LocationMarker() {
     useMapEvents({

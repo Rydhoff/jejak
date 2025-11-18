@@ -53,7 +53,8 @@ export default function CustomSelect({ value, onChange, options }) {
       {open && (
         <div
           className="absolute left-0 right-0 mt-2 bg-white rounded-xl shadow-lg
-                     py-2 z-10 animate-fadeIn w-full p-2 text-sm focus:outline-none border border-gray-200 px-4 outline-none focus:ring-1 focus:ring-[#2a8087] focus:border-[#2a8087] transition"
+                    py-2 z-10 animate-fadeIn w-full p-2 text-sm border border-gray-200
+                    max-h-[27vh] overflow-y-auto scrollbar-thin"
         >
           {options.map((opt) => {
             // hanya beri warna jika sedang dipilih
