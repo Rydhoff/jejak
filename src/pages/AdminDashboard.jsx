@@ -1,184 +1,185 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
-import { supabase } from '../supabaseClient'
-import headerAdminIcon from '/assets/header-admin.svg'
-import logoutIcon from '/assets/logout.svg'
-import searchIcon from '/assets/search.svg'
-import calendarIcon from '/assets/calendar.svg'
-import locationIcon from '/assets/location.svg'
-import BottomNav from '../components/BottomNav'
-import { Link } from 'react-router-dom'
-import CustomSelect from '../components/CustomSelect'
+import { useEffect, useState, useMemo, useRef } from 'react';
+import { supabase } from '../supabaseClient';
+import { Link } from 'react-router-dom';
+
+import headerAdminIcon from '/assets/header-admin.svg';
+import logoutIcon from '/assets/logout.svg';
+import searchIcon from '/assets/search.svg';
+import calendarIcon from '/assets/calendar.svg';
+import locationIcon from '/assets/location.svg';
+
+import BottomNav from '../components/BottomNav';
+import CustomSelect from '../components/CustomSelect';
 
 export default function Dashboard() {
-
   // 🔥 LAZY LOAD STATE
-  const LIMIT = 6
-  const [page, setPage] = useState(0)
-  const [hasMore, setHasMore] = useState(true)
-  const loaderRef = useRef(null)
+  const LIMIT = 6;
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = useRef(null);
 
-  const [search, setSearch] = useState("")
-  const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [active, setActive] = useState("Semua")
-  const tabs = ["Semua", "Baru", "Proses", "Selesai"]
-  const [reports, setReports] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [user, setUser] = useState("")
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [active, setActive] = useState('Semua');
+  const tabs = ['Semua', 'Baru', 'Proses', 'Selesai'];
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState('');
 
   // Filter kategori & prioritas
-  const [filterCategory, setFilterCategory] = useState("Semua")
-  const [filterPriority, setFilterPriority] = useState("Semua")
+  const [filterCategory, setFilterCategory] = useState('Semua');
+  const [filterPriority, setFilterPriority] = useState('Semua');
 
   // Priority labels
   const priorityLabels = {
-    5: "Tinggi",
-    4: "Sedang-Tinggi",
-    3: "Sedang",
-    2: "Rendah-Sedang",
-    1: "Rendah",
-  }
+    5: 'Tinggi',
+    4: 'Sedang-Tinggi',
+    3: 'Sedang',
+    2: 'Rendah-Sedang',
+    1: 'Rendah',
+  };
 
   const priorityOptions = [
-    "Semua",
+    'Semua',
     ...Object.entries(priorityLabels)
       .sort((a, b) => Number(b[0]) - Number(a[0]))
-      .map(([_, label]) => label)
-  ]
+      .map(([_, label]) => label),
+  ];
 
   // 🔥 FETCH PAGINATED DATA
   const fetchReports = async () => {
     try {
-      const start = page * LIMIT
-      const end = start + LIMIT - 1
+      const start = page * LIMIT;
+      const end = start + LIMIT - 1;
 
       const { data, error } = await supabase
-        .from("reports")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .range(start, end)
+        .from('reports')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(start, end);
 
-      if (error) throw error
+      if (error) throw error;
 
       if (!data || data.length === 0) {
-        setHasMore(false)
-        return
+        setHasMore(false);
+        return;
       }
 
       // merge tanpa duplicate
-      setReports(prev => {
-        const ids = new Set(prev.map(r => r.id))
-        const merged = [...prev]
-        data.forEach(item => {
-          if (!ids.has(item.id)) merged.push(item)
-        })
-        return merged
-      })
+      setReports((prev) => {
+        const ids = new Set(prev.map((r) => r.id));
+        const merged = [...prev];
+        data.forEach((item) => {
+          if (!ids.has(item.id)) merged.push(item);
+        });
+        return merged;
+      });
     } catch (err) {
-      console.error("Lazy load error:", err)
-      setError("Gagal memuat laporan")
+      console.error('Lazy load error:', err);
+      setError('Gagal memuat laporan');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // first load
   useEffect(() => {
-    fetchReports()
-  }, [page])
+    fetchReports();
+  }, [page]);
 
   // User fetch
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null))
-  }, [])
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
+  }, []);
 
   // 🔥 INTERSECTION OBSERVER (infinite scroll)
   useEffect(() => {
-    if (!hasMore) return
+    if (!hasMore) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setPage((p) => p + 1)
+          setPage((p) => p + 1);
         }
       },
       { threshold: 1 }
-    )
+    );
 
-    if (loaderRef.current) observer.observe(loaderRef.current)
+    if (loaderRef.current) observer.observe(loaderRef.current);
 
     return () => {
-      if (loaderRef.current) observer.unobserve(loaderRef.current)
-    }
-  }, [hasMore])
+      if (loaderRef.current) observer.unobserve(loaderRef.current);
+    };
+  }, [hasMore]);
 
   // Totals
   const totals = useMemo(() => {
     return {
       total: reports.length,
-      baru: reports.filter(r => (r.status ?? "").toLowerCase() === "diterima").length,
-      proses: reports.filter(r => (r.status ?? "").toLowerCase() === "proses").length,
-      selesai: reports.filter(r => (r.status ?? "").toLowerCase() === "selesai").length,
-    }
-  }, [reports])
+      baru: reports.filter((r) => (r.status ?? '').toLowerCase() === 'diterima').length,
+      proses: reports.filter((r) => (r.status ?? '').toLowerCase() === 'proses').length,
+      selesai: reports.filter((r) => (r.status ?? '').toLowerCase() === 'selesai').length,
+    };
+  }, [reports]);
 
   // Debounce search
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
-    return () => clearTimeout(t)
-  }, [search])
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
   // Dynamic categories
   const categories = useMemo(() => {
-    const cats = reports.map(r => r.category).filter(Boolean)
-    return ["Semua", ...Array.from(new Set(cats))]
-  }, [reports])
+    const cats = reports.map((r) => r.category).filter(Boolean);
+    return ['Semua', ...Array.from(new Set(cats))];
+  }, [reports]);
 
   // Full filtering
   const filteredReports = useMemo(() => {
-    let list = [...reports]
+    let list = [...reports];
+    const q = debouncedSearch.toLowerCase();
 
-    const q = debouncedSearch.toLowerCase()
-
-    if (active !== "Semua") {
+    if (active !== 'Semua') {
       list = list.filter((r) => {
-        const s = (r.status ?? "").toLowerCase()
-        if (active === "Baru") return s === "diterima"
-        return s === active.toLowerCase()
-      })
+        const s = (r.status ?? '').toLowerCase();
+        if (active === 'Baru') return s === 'diterima';
+        return s === active.toLowerCase();
+      });
     }
 
     if (q) {
-      list = list.filter((r) =>
-        (r.title ?? "").toLowerCase().includes(q) ||
-        (r.description ?? "").toLowerCase().includes(q) ||
-        (r.address ?? "").toLowerCase().includes(q)
-      )
+      list = list.filter(
+        (r) =>
+          (r.title ?? '').toLowerCase().includes(q) ||
+          (r.description ?? '').toLowerCase().includes(q) ||
+          (r.address ?? '').toLowerCase().includes(q)
+      );
     }
 
-    if (filterCategory !== "Semua") {
-      list = list.filter((r) => r.category === filterCategory)
+    if (filterCategory !== 'Semua') {
+      list = list.filter((r) => r.category === filterCategory);
     }
 
-    if (filterPriority !== "Semua") {
+    if (filterPriority !== 'Semua') {
       const numKey = Object.keys(priorityLabels).find(
-        key => priorityLabels[key] === filterPriority
-      )
-      list = list.filter((r) => Number(r.priority) === Number(numKey))
+        (key) => priorityLabels[key] === filterPriority
+      );
+      list = list.filter((r) => Number(r.priority) === Number(numKey));
     }
 
-    return list
-  }, [reports, debouncedSearch, active, filterCategory, filterPriority])
+    return list;
+  }, [reports, debouncedSearch, active, filterCategory, filterPriority]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    window.location.href = "/admin"
-  }
+    await supabase.auth.signOut();
+    window.location.href = '/admin';
+  };
 
   const formatName = (email) => {
-    if (!email) return ""
-    const name = email.split("@")[0]
-    return name.charAt(0).toUpperCase() + name.slice(1)
-  }
+    if (!email) return '';
+    const name = email.split('@')[0];
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
 
   return (
     <div className="max-w-md mx-auto relative pb-32">
@@ -201,7 +202,6 @@ export default function Dashboard() {
       </header>
 
       <div className="flex flex-col py-2 px-5">
-
         {/* Tabs */}
         <div className="grid grid-cols-2 gap-3 mt-4">
           {tabs.map((tab) => (
@@ -209,7 +209,7 @@ export default function Dashboard() {
               key={tab}
               onClick={() => setActive(tab)}
               className={`p-4 rounded-2xl text-left shadow-md transition-all ${
-                active === tab ? "bg-[#004D4D] text-white" : "bg-white text-[#004D4D]"
+                active === tab ? 'bg-[#004D4D] text-white' : 'bg-white text-[#004D4D]'
               }`}
             >
               <p className="text-md font-semibold">{tab}</p>
@@ -240,32 +240,24 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 gap-4 mt-5">
           <div className="flex flex-col">
             <label className="text-sm font-semibold text-gray-700">Kategori</label>
-            <CustomSelect
-              value={filterCategory}
-              onChange={setFilterCategory}
-              options={categories}
-            />
+            <CustomSelect value={filterCategory} onChange={setFilterCategory} options={categories} />
           </div>
 
           <div className="flex flex-col">
             <label className="text-sm font-semibold text-gray-700">Prioritas</label>
-            <CustomSelect
-              value={filterPriority}
-              onChange={setFilterPriority}
-              options={priorityOptions}
-            />
+            <CustomSelect value={filterPriority} onChange={setFilterPriority} options={priorityOptions} />
           </div>
         </div>
 
         {/* List Laporan */}
         <div className="list-report mt-6">
           <h1 className="text-xl poppins-semibold">
-            {active === "Semua" ? "Semua Laporan" : "Laporan " + active}
+            {active === 'Semua' ? 'Semua Laporan' : 'Laporan ' + active}
           </h1>
 
           {filteredReports.length === 0 ? (
             <div className="py-8 text-center text-gray-500">
-              Tidak ada laporan {debouncedSearch ? `untuk "${debouncedSearch}"` : ""}
+              Tidak ada laporan {debouncedSearch ? `untuk "${debouncedSearch}"` : ''}
             </div>
           ) : (
             <div className="max-w-md mx-auto mt-5 flex flex-col gap-5">
@@ -281,11 +273,11 @@ export default function Dashboard() {
                         />
                         <span
                           className={`absolute top-2 right-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${
-                            r.status === "Selesai"
-                              ? "bg-green-400/50 border-green-400 text-green-800"
-                              : r.status === "Proses"
-                              ? "bg-yellow-400/50 border-yellow-400 text-yellow-800"
-                              : "bg-gray-400/50 border-gray-400 text-gray-700"
+                            r.status === 'Selesai'
+                              ? 'bg-green-400/50 border-green-400 text-green-800'
+                              : r.status === 'Proses'
+                              ? 'bg-yellow-400/50 border-yellow-400 text-yellow-800'
+                              : 'bg-gray-400/50 border-gray-400 text-gray-700'
                           }`}
                         >
                           {r.status}
@@ -294,12 +286,8 @@ export default function Dashboard() {
                     )}
 
                     <div className="p-4">
-                      <h2 className="poppins-semibold text-base truncate w-[70vw]">
-                        {r.title}
-                      </h2>
-                      <p className="text-gray-600 text-sm truncate w-[70vw]">
-                        {r.description}
-                      </p>
+                      <h2 className="poppins-semibold text-base truncate w-[70vw]">{r.title}</h2>
+                      <p className="text-gray-600 text-sm truncate w-[70vw]">{r.description}</p>
 
                       <div className="text-xs text-gray-400 mt-2 gap-4">
                         <div className="flex items-center gap-1">
@@ -309,12 +297,12 @@ export default function Dashboard() {
                         <div className="flex items-center mt-2 gap-1">
                           <img src={calendarIcon} alt="Kalender" className="h-4.5 w-4.5" />
                           <span>
-                            {new Date(r.created_at).toLocaleString("id-ID", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
+                            {new Date(r.created_at).toLocaleString('id-ID', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
                             })}
                           </span>
                         </div>
@@ -337,5 +325,5 @@ export default function Dashboard() {
 
       <BottomNav />
     </div>
-  )
+  );
 }

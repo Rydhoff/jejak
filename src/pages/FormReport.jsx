@@ -5,11 +5,12 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 're
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Link } from 'react-router-dom';
-import backIcon from '/assets/back.svg';
-import mediaIcon from '/assets/media.svg';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { callAI } from '../services/aiServices';
+
+import backIcon from '/assets/back.svg';
+import mediaIcon from '/assets/media.svg';
 
 // --- Setup Leaflet icon ---
 delete L.Icon.Default.prototype._getIconUrl;
@@ -29,7 +30,7 @@ export default function FormReport() {
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
   const [address, setAddress] = useState('');
-  const [location, setLocation] = useState({ lat: -6.200000, lng: 106.816666 });
+  const [location, setLocation] = useState({ lat: -6.2, lng: 106.816666 });
 
   const cacheRef = useRef({});
   const searchTimeout = useRef(null);
@@ -67,15 +68,18 @@ export default function FormReport() {
   const handleSearch = (query) => {
     setAddress(query);
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
     if (query.length < 3) {
       setSearchResults([]);
       return;
     }
+
     searchTimeout.current = setTimeout(async () => {
       if (cacheRef.current[query]) {
         setSearchResults(cacheRef.current[query]);
         return;
       }
+
       setSearchLoading(true);
       try {
         const res = await fetch(
@@ -113,26 +117,16 @@ export default function FormReport() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!description) {
-      toast.error('Isi deskripsi laporan terlebih dahulu!');
-      return;
-    }
-
-    if (!photo) {
-      toast.error('Pilih foto bukti terlebih dahulu!');
-      return;
-    }
+    if (!description) return toast.error('Isi deskripsi laporan terlebih dahulu!');
+    if (!photo) return toast.error('Pilih foto bukti terlebih dahulu!');
 
     setLoading(true);
     const tId = toast.loading('Mengirim laporan...');
 
     try {
-
-      // --- PANGGIL AI DULU ---
       const aiResult = await callAI({ text: description });
       const { category, title, moderation, priority } = aiResult;
 
-      // --- VALIDASI MODERATION ---
       if (moderation === true) {
         toast.update(tId, {
           render: 'Laporan mengandung kata tidak pantas atau sensitif. Mohon perbaiki deskripsi.',
@@ -141,13 +135,11 @@ export default function FormReport() {
           autoClose: 3000
         });
         setLoading(false);
-        return; // STOP submit, JANGAN upload foto, JANGAN insert DB
+        return;
       }
 
-      // --- UPLOAD FOTO HANYA JIKA MODERATION AMAN ---
       const photoPath = await uploadPhoto(photo);
 
-      // --- INSERT DATABASE ---
       const { error: insertError } = await supabase.from('reports').insert([
         {
           name,
@@ -179,7 +171,6 @@ export default function FormReport() {
       setContact('');
       setDescription('');
       setPhoto(null);
-
     } catch (err) {
       console.error(err);
       toast.update(tId, {
@@ -193,7 +184,7 @@ export default function FormReport() {
     }
   };
 
-
+  // --- Leaflet components ---
   function LocationMarker() {
     useMapEvents({
       click(e) {
@@ -201,6 +192,7 @@ export default function FormReport() {
         reverseGeocode(e.latlng.lat, e.latlng.lng);
       }
     });
+
     return (
       <Marker position={[location.lat, location.lng]}>
         <Popup>{address || 'Titik lokasi laporan'}</Popup>
@@ -230,10 +222,26 @@ export default function FormReport() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-5">
         <label className="input-label text-sm poppins-semibold -mb-0.5">Informasi Pelapor</label>
         <input type="text" placeholder="Nama lengkap" value={name} onChange={e => setName(e.target.value)} required />
-        <input type="text" placeholder="No. HP: 0895***" value={contact} onChange={e => setContact(e.target.value)} required />
+        <input
+          type="text"
+          placeholder="No. HP: 0895***"
+          value={contact}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (/^\d*$/.test(value)) setContact(value);
+          }}
+          required
+        />
 
         <label className="input-label text-sm poppins-semibold mt-2 -mb-0.5">Detail Laporan</label>
-        <textarea rows={3} placeholder="Ceritakan masalah secara singkat..." value={description} onChange={e => setDescription(e.target.value)} required className="-mb-1" />
+        <textarea
+          rows={3}
+          placeholder="Ceritakan masalah secara singkat..."
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          required
+          className="-mb-1"
+        />
 
         <div>
           <div className="relative">
@@ -260,7 +268,11 @@ export default function FormReport() {
         <div className="flex items-center gap-3">
           <label htmlFor="photo-upload" className="flex items-center h-13 gap-3 text-white cursor-pointer w-full shadow-sm bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-[#2a8087] focus:border-[#2a8087] transition">
             <img src={mediaIcon} alt="Upload Icon" className="w-5 h-5" />
-            {photo ? (<span className="text-gray-700 truncate max-w-full">|&nbsp;&nbsp;{photo.name}</span>) : (<span className="text-gray-400">|&nbsp;&nbsp;Pilih media</span>)}
+            {photo ? (
+              <span className="text-gray-700 truncate max-w-full">|&nbsp;&nbsp;{photo.name}</span>
+            ) : (
+              <span className="text-gray-400">|&nbsp;&nbsp;Pilih media</span>
+            )}
           </label>
           <input id="photo-upload" type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files[0])} className="hidden" required />
         </div>
@@ -270,7 +282,19 @@ export default function FormReport() {
         <button type="submit" disabled={loading} className="btn-primary mt-3 disabled:bg-gray-400 active:scale-100">{loading ? 'Loading' : 'Kirim Laporan'}</button>
       </form>
 
-      <ToastContainer position="top-center" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick={false} rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="light" transition={Bounce} />
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
     </div>
   );
 }
