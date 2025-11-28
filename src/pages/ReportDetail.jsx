@@ -44,6 +44,17 @@ export default function ReportDetail() {
       </div>
     );
 
+  const priorityText = (value) => {
+  switch (value) {
+    case 1: return 'Rendah';
+    case 2: return 'Rendah - Sedang';
+    case 3: return 'Sedang';
+    case 4: return 'Sedang - Tinggi';
+    case 5: return 'Tinggi';
+    default: return '-';
+  }
+};
+
   return (
     <div className="max-w-md mx-auto relative pb-10">
       <nav className="flex items-center justify-center h-15 bg-[#0A3B44] rounded-bl-2xl rounded-br-2xl sticky top-0 w-full shadow-md z-10">
@@ -82,6 +93,7 @@ export default function ReportDetail() {
                 })
               : '-'}
           </div>
+          <div>Prioritas: {priorityText(report?.priority)}</div>
           <div>Kategori: {report?.category || '-'}</div>
           <div>Status: {report?.status || '-'}</div>
           <div>Lokasi: {report?.address || '-'}</div>

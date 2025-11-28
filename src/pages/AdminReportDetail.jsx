@@ -139,6 +139,17 @@ export default function AdminReportDetail() {
     }
   };
 
+  const priorityText = (value) => {
+    switch (value) {
+      case 1: return 'Rendah';
+      case 2: return 'Rendah - Sedang';
+      case 3: return 'Sedang';
+      case 4: return 'Sedang - Tinggi';
+      case 5: return 'Tinggi';
+      default: return '-';
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto relative">
       {/* NAVBAR */}
@@ -179,6 +190,7 @@ export default function AdminReportDetail() {
               minute: "2-digit",
             })}
           </div>
+          <div>Prioritas: {priorityText(report?.priority)}</div>
           <div className="mt-1">Kategori : {report.category}</div>
           <div className="mt-1">Status : {report.status}</div>
           <div className="mt-1">Lokasi : {report.address}</div>

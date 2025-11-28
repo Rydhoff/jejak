@@ -136,10 +136,10 @@ export default function Dashboard() {
 
   // Full filtering
   const filteredReports = useMemo(() => {
-    let list = [...reports];
-    const q = debouncedSearch.toLowerCase();
+  let list = [...reports];
+  const q = debouncedSearch.toLowerCase();
 
-    if (active !== 'Semua') {
+  if (active !== 'Semua') {
       list = list.filter((r) => {
         const s = (r.status ?? '').toLowerCase();
         if (active === 'Baru') return s === 'diterima';
@@ -167,6 +167,9 @@ export default function Dashboard() {
       list = list.filter((r) => Number(r.priority) === Number(numKey));
     }
 
+    // ⬇️ Urutkan berdasarkan prioritas — tinggi ke rendah
+    list.sort((a, b) => Number(b.priority) - Number(a.priority));
+
     return list;
   }, [reports, debouncedSearch, active, filterCategory, filterPriority]);
 
@@ -179,6 +182,28 @@ export default function Dashboard() {
     if (!email) return '';
     const name = email.split('@')[0];
     return name.charAt(0).toUpperCase() + name.slice(1);
+  };  
+  
+  const priorityText = (value) => {
+    switch (value) {
+      case 1: return 'Rendah';
+      case 2: return 'Rendah - Sedang';
+      case 3: return 'Sedang';
+      case 4: return 'Sedang - Tinggi';
+      case 5: return 'Tinggi';
+      default: return '-';
+    }
+  };
+
+  const priorityBadge = (value) => {
+    switch (Number(value)) {
+      case 5: return "bg-red-400/50 text-red-800";
+      case 4: return "bg-orange-400/50 text-orange-800";
+      case 3: return "bg-yellow-400/50 text-yellow-800";
+      case 2: return "bg-lime-400/50 text-lime-800";
+      case 1: return "bg-green-400/50 text-green-800";
+      default: return "bg-gray-400/50 text-gray-800";
+    }
   };
 
   return (
@@ -264,13 +289,15 @@ export default function Dashboard() {
               {filteredReports.map((r) => (
                 <Link to={`report/${r.id}`} key={r.id}>
                   <div className="bg-white rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg">
-                    {r.photo_url && (
-                      <div className="relative">
+                      {r.photo_url && (
+                        <div className="relative">
                         <img
                           src={`https://xepaobgjnetmybdlahdm.supabase.co/storage/v1/object/public/reports/${r.photo_url}`}
                           alt="report"
                           className="w-full h-36 object-cover"
                         />
+
+                        <div className="absolute inset-0 bg-linear-to-b from-white/75 via-white/5 to-transparent pointer-events-none"></div>
                         <span
                           className={`absolute top-2 right-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${
                             r.status === 'Selesai'
@@ -281,6 +308,9 @@ export default function Dashboard() {
                           }`}
                         >
                           {r.status}
+                        </span>
+                        <span className={`absolute top-2 left-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${priorityBadge(r.priority)}`}>
+                          Prioritas: {priorityText(r.priority)}
                         </span>
                       </div>
                     )}

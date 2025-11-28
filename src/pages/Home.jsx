@@ -161,13 +161,15 @@ export default function Home() {
               {filteredReports.map((r) => (
                 <Link to={`report/${r.id}`} key={`${r.id}-${r.created_at}`}>
                   <div className="bg-white rounded-2xl shadow-md overflow-hidden transition hover:shadow-lg">
-                    {r.photo_url && (
-                      <div className="relative">
+                      {r.photo_url && (
+                        <div className="relative">
                         <img
                           src={`https://xepaobgjnetmybdlahdm.supabase.co/storage/v1/object/public/reports/${r.photo_url}`}
                           alt="report"
                           className="w-full h-36 object-cover"
                         />
+
+                        <div className="absolute inset-0 bg-linear-to-b from-white/75 via-white/5 to-transparent pointer-events-none"></div>
                         <span
                           className={`absolute top-2 scale-95 right-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${
                             r.status === 'Selesai'
