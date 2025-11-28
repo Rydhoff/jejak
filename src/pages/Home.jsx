@@ -108,7 +108,7 @@ export default function Home() {
         <img src={headerHomeIcon} alt="Header Home" className="drop-shadow-md" />
         <img src={logoJejak} alt="Logo Jejak" className="h-22 absolute top-7 left-11 drop-shadow-sm" />
         <p className="text-sm poppins-semibold absolute text-[#004d4d] top-28 left-9">
-          Tinggalkan Jejak, Wujudkan Perubahan
+          Buat Kota Lebih Aman & Nyaman
         </p>
       </header>
 
